@@ -1,5 +1,23 @@
 {
   "dependencies": {
     "discord.js": "^14.5.0"
-  }
+  },
+  "name": "hackerbot",
+  "version": "1.0.0",
+  "main": "index.js",
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ihs-hackerspace/HackerBot.git"
+  },
+  "author": "David Angell",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ihs-hackerspace/HackerBot/issues"
+  },
+  "homepage": "https://github.com/ihs-hackerspace/HackerBot#readme",
+  "description": ""
 }
