@@ -10,6 +10,7 @@ const db = getFirestore();
 
 const YOUR_PROJECTS_CATEGORY = "1028394596352409691"
 const OLD_PROJECTS_CATEGORY = "1028440069868113951";
+const ONGOING_PROJECTS_CHANNEL = "1028375365577605140";
 
 const commands = [
     {
@@ -189,7 +190,7 @@ const commands = [
                 const snapshot = await db.doc(`Projects/${projectName}`).get();
 
                 if (snapshot.exists) {
-                    const hasPermission = snapshot.data()["project-leaders"].includes(interaction.user.id);
+                    const hasPermission = snapshot.data()["project-leaders"].includes(interaction.user.id) || snapshot.data()["project-admin"] == interaction.user.id;
                     if (!hasPermission) {
                         await interaction.reply({ content: `Nice try but you don't have permission to do that!`, ephemeral: true });
                         return;
@@ -263,7 +264,7 @@ const commands = [
 
                     if (!snapshot.data()["project-leaders"].includes(newMember.id)) {
                         await db.doc(`Projects/${projectName}`).update({ 
-                            members: [
+                            "project-leaders": [
                                 ...snapshot.data()["project-leaders"], 
                                 newMember.id
                             ],  
@@ -310,62 +311,7 @@ const commands = [
                 const snapshot = await db.doc(`Projects/${projectName}`).get();
 
                 if (snapshot.exists) {
-                    const hasPermission = snapshot.data()["project-leaders"].includes(interaction.user.id);
-                    if (!hasPermission) {
-                        await interaction.reply({ content: `Nice try but you don't have permission to do that!`, ephemeral: true });
-                        return;
-                    }
-
-                    // Remove member to members list for project in database
-                    await db.doc(`Projects/${projectName}`).update(
-                        { 
-                            members: [
-                                ...snapshot.data()["members"].filter(m => m !== deletionMember.id), 
-                            ] 
-                        },
-                    );
-
-                    // Revoke member access to the project channel
-                    const channel = bot.channels.cache.get(snapshot.data()["project-channel"]);
-                    channel.permissionOverwrites.edit(deletionMember.id, { ViewChannel: false });
-
-                    // Reply
-                    await interaction.reply({ content: `Removed ${deletionMember} from "${projectName}"`, ephemeral: true });
-
-                } else {
-                    await interaction.reply({ content: `"${projectName}" doesn't exists! Please try again!`, ephemeral: true });
-                }
-
-            } catch (error) {
-                await interaction.reply({ content: 'Sorry! Something went wrong!', ephemeral: true });
-            }
-        }
-    },
-    {
-        name: 'remove-project-leader',
-        description: 'Removes a leader froms your project (only the project CREATOR can do this)',
-        options: [
-            {
-                name: "project-name",
-                description: "The name of your project",
-                required: true,
-                type: 3,
-            },
-            {
-                name: "leader-name",
-                description: "The account of the person you want to add",
-                required: true,
-                type: 6,
-            },
-        ],
-        onCall: async (interaction) => {
-            try {
-                const projectName = interaction.options.getString("project-name");
-                const deletionMember = interaction.options.getUser("leader-name");
-                const snapshot = await db.doc(`Projects/${projectName}`).get();
-
-                if (snapshot.exists) {
-                    const hasPermission = snapshot.data()["project-admin"] == interaction.user.id
+                    const hasPermission = snapshot.data()["project-leaders"].includes(interaction.user.id) || snapshot.data()["project-admin"] == interaction.user.id;
                     if (!hasPermission) {
                         await interaction.reply({ content: `Nice try but you don't have permission to do that!`, ephemeral: true });
                         return;
@@ -399,7 +345,66 @@ const commands = [
             }
         }
     },
+    {
+        name: 'demote-project-leader',
+        description: 'Removes a leader froms your project (only the project CREATOR can do this)',
+        options: [
+            {
+                name: "project-name",
+                description: "The name of your project",
+                required: true,
+                type: 3,
+            },
+            {
+                name: "leader-name",
+                description: "The account of the person you want to add",
+                required: true,
+                type: 6,
+            },
+        ],
+        onCall: async (interaction) => {
+            try {
+                const projectName = interaction.options.getString("project-name");
+                const deletionMember = interaction.options.getUser("leader-name");
+                const snapshot = await db.doc(`Projects/${projectName}`).get();
+
+                if (snapshot.exists) {
+                    const hasPermission = snapshot.data()["project-admin"] == interaction.user.id
+                    if (!hasPermission) {
+                        await interaction.reply({ content: `Nice try but you don't have permission to do that!`, ephemeral: true });
+                        return;
+                    }
+
+                    // Remove member to members list for project in database
+                    await db.doc(`Projects/${projectName}`).update(
+                        {
+                            "project-leaders": [
+                                ...snapshot.data()["project-leaders"].filter(m => m !== deletionMember.id), 
+                            ] 
+                        },
+                    );
+
+                    // Revoke member access to the project channel
+                    const channel = bot.channels.cache.get(snapshot.data()["project-channel"]);
+                    channel.permissionOverwrites.edit(deletionMember.id, { ViewChannel: false });
+
+                    // Reply
+                    await interaction.reply({ content: `Removed ${deletionMember} from "${projectName}"`, ephemeral: true });
+
+                } else {
+                    await interaction.reply({ content: `"${projectName}" doesn't exists! Please try again!`, ephemeral: true });
+                }
+
+            } catch (error) {
+                await interaction.reply({ content: 'Sorry! Something went wrong!', ephemeral: true });
+            }
+        }
+    },
 ];
+
+async function updateOngoingProjects() {
+    const ongoingProjectsChannel = bot.channels.cache.get(ONGOING_PROJECTS_CHANNEL);
+}
 
 // Tell Discord what commands the bot has
 (async () => {
@@ -424,6 +429,7 @@ bot.on('interactionCreate', async interaction => {
             command.onCall(interaction);
     })
 
+    await updateOngoingProjects();
 });
 
 bot.login(BOT_TOKEN);
