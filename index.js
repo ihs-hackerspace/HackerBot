@@ -33,7 +33,7 @@ const commands = [
         ],
         onCall: async (interaction) => {
             try {
-                const projectName = interaction.options.getString("project-name");
+                const projectName = interaction.options.getString("project-name").toLowerCase().replaceAll(" ", "-");
                 const snapshot = await db.doc(`Projects/${projectName}`).get();
 
                 if (!snapshot.exists) {
@@ -94,7 +94,7 @@ const commands = [
         ],
         onCall: async (interaction) => {
             try {
-                const projectName = interaction.options.getString("project-name");
+                const projectName = interaction.options.getString("project-name").toLowerCase().replaceAll(" ", "-");
                 const snapshot = await db.doc(`Projects/${projectName}`).get();
     
                 if (snapshot.exists) {
@@ -129,7 +129,7 @@ const commands = [
         ],
         onCall: async (interaction) => {
             try {
-                const projectName = interaction.options.getString("project-name");
+                const projectName = interaction.options.getString("project-name").toLowerCase().replaceAll(" ", "-");
                 const snapshot = await db.doc(`Projects/${projectName}`).get();
     
                 if (snapshot.exists) {
@@ -171,7 +171,7 @@ const commands = [
         ],
         onCall: async (interaction) => {
             try {
-                const projectName = interaction.options.getString("project-name");
+                const projectName = interaction.options.getString("project-name").toLowerCase().replaceAll(" ", "-");
                 const newMember = interaction.options.getUser("member-name");
                 const snapshot = await db.doc(`Projects/${projectName}`).get();
 
@@ -227,7 +227,7 @@ const commands = [
         ],
         onCall: async (interaction) => {
             try {
-                const projectName = interaction.options.getString("project-name");
+                const projectName = interaction.options.getString("project-name").toLowerCase().replaceAll(" ", "-");
                 const newMember = interaction.options.getUser("leader-name");
                 const snapshot = await db.doc(`Projects/${projectName}`).get();
 
@@ -292,7 +292,7 @@ const commands = [
         ],
         onCall: async (interaction) => {
             try {
-                const projectName = interaction.options.getString("project-name");
+                const projectName = interaction.options.getString("project-name").toLowerCase().replaceAll(" ", "-");
                 const deletionMember = interaction.options.getUser("member-name");
                 const snapshot = await db.doc(`Projects/${projectName}`).get();
 
@@ -350,7 +350,7 @@ const commands = [
         ],
         onCall: async (interaction) => {
             try {
-                const projectName = interaction.options.getString("project-name");
+                const projectName = interaction.options.getString("project-name").toLowerCase().replaceAll(" ", "-");
                 const deletionMember = interaction.options.getUser("leader-name");
                 const snapshot = await db.doc(`Projects/${projectName}`).get();
 
@@ -388,6 +388,12 @@ const commands = [
     },
 ];
 
+function toTitleCase(str) {
+    return str
+        .replace(/\w\S*/g, (txt) => txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase())
+        .replaceAll("-", " ");
+}
+
 async function updateOngoingProjectsWidget(oldProjectsWidget) {
     const ongoingProjectsChannel = bot.channels.cache.get(ONGOING_PROJECTS_CHANNEL);
     const snapshot = await db.collection('Projects').get();
@@ -396,25 +402,15 @@ async function updateOngoingProjectsWidget(oldProjectsWidget) {
     const ongoingProjectsEmbed = {
         color: 0x0099ff,
         title: 'Ongoing Projects',
-        // url: 'https://discord.js.org',
-        // author: {
-        //     name: 'Some name',
-        //     icon_url: 'https://i.imgur.com/AfFp7pu.png',
-        //     url: 'https://discord.js.org',
-        // },
-        description: 'A list of the ongoing projects and their descriptions',
+        thumbnail: { url: bot.user.displayAvatarURL() },
+        description: '\n\u200b',
         fields: [
-            {
-                name: '\u200b',
-                value: '\u200b',
-                inline: false,
-            },
             ...((() =>
                 snapshot.docs.map((doc) => {
                     if (doc.data()["ongoing"]) {
                         return {
-                            name: doc.data()["name"],
-                            value: doc.data()["description"],
+                            name: toTitleCase(doc.data()["name"]),
+                            value: doc.data()["description"] + "\n\u200b",
                         }
                     }
                 })
@@ -445,13 +441,10 @@ async function updateOngoingProjectsWidget(oldProjectsWidget) {
                 inline: false,
             },
         ],
-        // image: {
-        //     url: 'https://i.imgur.com/AfFp7pu.png',
-        // },
         timestamp: new Date().toISOString(),
         footer: {
             text: 'IHS HackerBot',
-            icon_url: 'https://i.imgur.com/AfFp7pu.png',
+            icon_url: bot.user.displayAvatarURL(),
         },
     };
 
