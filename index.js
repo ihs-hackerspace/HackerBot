@@ -1,33 +1,19 @@
-const { Client, GatewayIntentBits, REST, Routes, ChannelType, PermissionsBitField, SlashCommandBuilder } = require('discord.js');
+const { Client, GatewayIntentBits, REST, Routes, ChannelType, PermissionsBitField, } = require('discord.js');
 const { BOT_TOKEN, CLIENT_ID, FIREBASE_AUTH } = require('./config')
 const bot = new Client({ intents: [GatewayIntentBits.Guilds] });
 const rest = new REST({ version: '10' }).setToken(BOT_TOKEN);
 
-const { initializeApp, applicationDefault, cert } = require('firebase-admin/app');
-const { getFirestore, Timestamp, FieldValue } = require('firebase-admin/firestore');
+const { initializeApp, cert } = require('firebase-admin/app');
+const { getFirestore } = require('firebase-admin/firestore');
 initializeApp({ credential: cert(FIREBASE_AUTH) });
 const db = getFirestore();
 
 const YOUR_PROJECTS_CATEGORY = "1028394596352409691"
 const OLD_PROJECTS_CATEGORY = "1028440069868113951";
 const ONGOING_PROJECTS_CHANNEL = "1028375365577605140";
+let ProjectsWidget;
 
 const commands = [
-    {
-        name: 'ping',
-        description: 'pong',
-        options: [
-            {
-                name: "input",
-                description: "The input to echo back",
-                required: true,
-                type: 3, // https://discord.com/developers/docs/interactions/application-commands#application-command-object-application-command-option-type
-            },
-        ],
-        onCall: async (interaction) => {
-            await interaction.reply({ content: 'Pog!', ephemeral: true });
-        }
-    },
     {
         name: 'create-new-project',
         description: 'Create a new project and memebers who wish to work on the project!',
@@ -36,13 +22,13 @@ const commands = [
                 name: "project-name",
                 description: "The name of your new project",
                 required: true,
-                type: 3,
+                type: 3, // https://discord.com/developers/docs/interactions/application-commands#application-command-object-application-command-option-type
             },
             {
                 name: "project-description",
                 description: "The description of your new project",
                 required: true,
-                type: 3,
+                type: 3, // https://discord.com/developers/docs/interactions/application-commands#application-command-object-application-command-option-type
             },
         ],
         onCall: async (interaction) => {
@@ -103,7 +89,7 @@ const commands = [
                 name: "project-name",
                 description: "The name of your finished project",
                 required: true,
-                type: 3,
+                type: 3, // https://discord.com/developers/docs/interactions/application-commands#application-command-object-application-command-option-type
             },
         ],
         onCall: async (interaction) => {
@@ -138,7 +124,7 @@ const commands = [
                 name: "project-name",
                 description: "The name of your old project",
                 required: true,
-                type: 3,
+                type: 3, // https://discord.com/developers/docs/interactions/application-commands#application-command-object-application-command-option-type
             },
         ],
         onCall: async (interaction) => {
@@ -174,13 +160,13 @@ const commands = [
                 name: "project-name",
                 description: "The name of your project",
                 required: true,
-                type: 3,
+                type: 3, // https://discord.com/developers/docs/interactions/application-commands#application-command-object-application-command-option-type
             },
             {
                 name: "member-name",
                 description: "The account of the person you want to add",
                 required: true,
-                type: 6,
+                type: 6, // https://discord.com/developers/docs/interactions/application-commands#application-command-object-application-command-option-type
             },  
         ],
         onCall: async (interaction) => {
@@ -230,13 +216,13 @@ const commands = [
                 name: "project-name",
                 description: "The name of your project",
                 required: true,
-                type: 3,
+                type: 3, // https://discord.com/developers/docs/interactions/application-commands#application-command-object-application-command-option-type
             },
             {
                 name: "leader-name",
                 description: "The account of the person you want to add",
                 required: true,
-                type: 6,
+                type: 6, // https://discord.com/developers/docs/interactions/application-commands#application-command-object-application-command-option-type
             },
         ],
         onCall: async (interaction) => {
@@ -295,13 +281,13 @@ const commands = [
                 name: "project-name",
                 description: "The name of your project",
                 required: true,
-                type: 3,
+                type: 3, // https://discord.com/developers/docs/interactions/application-commands#application-command-object-application-command-option-type
             },
             {
                 name: "member-name",
                 description: "The account of the person you want to remove",
                 required: true,
-                type: 6,
+                type: 6, // https://discord.com/developers/docs/interactions/application-commands#application-command-object-application-command-option-type
             },
         ],
         onCall: async (interaction) => {
@@ -353,13 +339,13 @@ const commands = [
                 name: "project-name",
                 description: "The name of your project",
                 required: true,
-                type: 3,
+                type: 3, // https://discord.com/developers/docs/interactions/application-commands#application-command-object-application-command-option-type
             },
             {
                 name: "leader-name",
                 description: "The account of the person you want to add",
                 required: true,
-                type: 6,
+                type: 6, // https://discord.com/developers/docs/interactions/application-commands#application-command-object-application-command-option-type
             },
         ],
         onCall: async (interaction) => {
@@ -402,8 +388,84 @@ const commands = [
     },
 ];
 
-async function updateOngoingProjects() {
+async function updateOngoingProjectsWidget(oldProjectsWidget) {
     const ongoingProjectsChannel = bot.channels.cache.get(ONGOING_PROJECTS_CHANNEL);
+    const snapshot = await db.collection('Projects').get();
+
+    // https://discordjs.guide/popular-topics/embeds.html#embed-preview
+    const ongoingProjectsEmbed = {
+        color: 0x0099ff,
+        title: 'Ongoing Projects',
+        // url: 'https://discord.js.org',
+        // author: {
+        //     name: 'Some name',
+        //     icon_url: 'https://i.imgur.com/AfFp7pu.png',
+        //     url: 'https://discord.js.org',
+        // },
+        description: 'A list of the ongoing projects and their descriptions',
+        fields: [
+            {
+                name: '\u200b',
+                value: '\u200b',
+                inline: false,
+            },
+            ...((() =>
+                snapshot.docs.map((doc) => {
+                    if (doc.data()["ongoing"]) {
+                        return {
+                            name: doc.data()["name"],
+                            value: doc.data()["description"],
+                        }
+                    }
+                })
+            )()),
+            {
+                name: '\u200b',
+                value: '\u200b',
+                inline: false,
+            },
+            {
+                name: 'Inline field title',
+                value: 'Some value here',
+                inline: true,
+            },
+            {
+                name: 'Inline field title',
+                value: 'Some value here',
+                inline: true,
+            },
+            {
+                name: 'Inline field title',
+                value: 'Some value here',
+                inline: true,
+            },
+            {
+                name: '\u200b',
+                value: '\u200b',
+                inline: false,
+            },
+        ],
+        // image: {
+        //     url: 'https://i.imgur.com/AfFp7pu.png',
+        // },
+        timestamp: new Date().toISOString(),
+        footer: {
+            text: 'IHS HackerBot',
+            icon_url: 'https://i.imgur.com/AfFp7pu.png',
+        },
+    };
+
+    if (!oldProjectsWidget) {
+        // delete old widget (and any other messages that could somehow get there if someone is trolling)
+        const messages = await ongoingProjectsChannel.messages.fetch();
+        await ongoingProjectsChannel.bulkDelete(messages);
+
+        // send new widget
+        return (await ongoingProjectsChannel.send({ embeds: [ongoingProjectsEmbed] }));
+    } else {
+        return (await oldProjectsWidget.edit({ embeds: [ongoingProjectsEmbed] }));
+    }
+
 }
 
 // Tell Discord what commands the bot has
@@ -418,18 +480,21 @@ async function updateOngoingProjects() {
 })();
 
 // Wait for the bot to be ready
-bot.on('ready', () => { console.log(`Logged in as ${bot.user.tag}!`) });
+bot.on('ready', async () => { 
+    console.log(`Logged in as ${bot.user.tag}!`);
+    ProjectsWidget = await updateOngoingProjectsWidget(ProjectsWidget);
+});
 
 // Run the onCall function for whatever command was sent
 bot.on('interactionCreate', async interaction => {
     if (!interaction.isChatInputCommand()) return;
 
     commands.forEach(async command => {
-        if (command.name === interaction.commandName) 
-            command.onCall(interaction);
+        if (command.name === interaction.commandName) {
+            await command.onCall(interaction);
+            ProjectsWidget = await updateOngoingProjectsWidget(ProjectsWidget);
+        }
     })
-
-    await updateOngoingProjects();
 });
 
 bot.login(BOT_TOKEN);
