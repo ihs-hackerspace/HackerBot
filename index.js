@@ -1,17 +1,19 @@
-import { Client, GatewayIntentBits, REST, Routes, ChannelType, PermissionsBitField, } from 'discord.js';
-import { BOT_TOKEN, CLIENT_ID, FIREBASE_AUTH } from './config.mjs'
+// Set up discord bot
+import { Client, GatewayIntentBits, REST, Routes } from 'discord.js';
+import { BOT_TOKEN, CLIENT_ID } from './config.mjs'
 const bot = new Client({ intents: [GatewayIntentBits.Guilds] });
 const rest = new REST({ version: '10' }).setToken(BOT_TOKEN);
 
+// Set up firebase: firestore for database
 import { initializeApp, cert } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
+import { FIREBASE_AUTH } from './config.mjs';
 initializeApp({ credential: cert(FIREBASE_AUTH) });
 const db = getFirestore();
 
+// import discord bot commands and relevant constants
 import { commands } from './commands/commands.mjs';
 import { ONGOING_PROJECTS_CHANNEL } from './constants.mjs';
-
-let ProjectsWidget;
 
 function toTitleCase(str) {
     return str
@@ -26,11 +28,12 @@ function differenceOfDays(date1, date2) {
     return diffInDays;
 }
 
+// Define the project widget so that it can be edited later
+let ProjectsWidget;
+// https://discordjs.guide/popular-topics/embeds.html#embed-preview
 async function updateOngoingProjectsWidget(oldProjectsWidget) {
     const ongoingProjectsChannel = bot.channels.cache.get(ONGOING_PROJECTS_CHANNEL);
     const snapshot = await db.collection('Projects').get();
-
-    // https://discordjs.guide/popular-topics/embeds.html#embed-preview
     const ongoingProjectsEmbed = {
         color: 0x0099ff,
         title: 'Ongoing Projects',
@@ -110,6 +113,7 @@ bot.on('interactionCreate', async interaction => {
     })
 });
 
+// Login
 bot.login(BOT_TOKEN);
 
 
