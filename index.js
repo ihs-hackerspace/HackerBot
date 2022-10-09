@@ -105,15 +105,13 @@ const commands = [
         ],
         onCall: async (interaction) => {
             try {
-                await interaction.deferReply();
-
                 const projectName = interaction.options.getString("project-name").toLowerCase().replaceAll(" ", "-");
                 const snapshot = await db.doc(`Projects/${projectName}`).get();
     
                 if (snapshot.exists) {
                     const hasPermission = snapshot.data()["project-leaders"].includes(interaction.user.id);
                     if (!hasPermission) {
-                        await interaction.editReply({ content: `Nice try but you don't have permission to do that!`, ephemeral: true });
+                        await interaction.reply({ content: `Nice try but you don't have permission to do that!`, ephemeral: true });
                         return;
                     }
 
@@ -121,11 +119,11 @@ const commands = [
                     channel.setParent(OLD_PROJECTS_CATEGORY);
                     await db.doc(`Projects/${projectName}`).update(({ ongoing: false }));
                 } else {
-                    await interaction.editReply({ content: `"${projectName}" doesn't exists! Please try again!`, ephemeral: true });
+                    await interaction.reply({ content: `"${projectName}" doesn't exists! Please try again!`, ephemeral: true });
                 }
     
             } catch (error) {
-                await interaction.editReply({ content: 'Project completed! Good Job!', ephemeral: true });
+                await interaction.reply({ content: 'Project completed! Good Job!', ephemeral: true });
             }
         }
     },
@@ -731,7 +729,6 @@ async function updateOngoingProjectsWidget(oldProjectsWidget) {
     } else {
         return (await oldProjectsWidget.edit({ embeds: [ongoingProjectsEmbed] }));
     }
-
 }
 
 // Tell Discord what commands the bot has
