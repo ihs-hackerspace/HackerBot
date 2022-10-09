@@ -127,6 +127,9 @@ const commands = [
             }
         }
     },
+
+
+    
     {
         name: 'unmark-project-complete',
         description: 'For when you accidentally marked your project complete',
@@ -689,9 +692,10 @@ async function updateOngoingProjectsWidget(oldProjectsWidget) {
         fields: [
             // Dont Ask
             ...((() =>
-                snapshot.docs.map((doc) => {
-                    const project = doc.data();
-                    if (project["ongoing"]) {
+                snapshot.docs
+                    .filter(doc => doc.data()["ongoing"])
+                    .map(doc => {
+                        const project = doc.data();
                         const dayDifference = differenceOfDays(project['start-date'].toDate(), new Date())
                         return {
                             name: `${toTitleCase(project["name"])} - ${dayDifference} day${dayDifference != 1 ? "s" : ""}`,
@@ -708,8 +712,7 @@ async function updateOngoingProjectsWidget(oldProjectsWidget) {
                             `,
                             inline: true,
                         }
-                    }
-                })
+                    })
             )()),
         ],
         timestamp: new Date().toISOString(),
