@@ -108,7 +108,7 @@ bot.on('interactionCreate', async interaction => {
 
     commands.forEach(async command => {
         if (command.name === interaction.commandName) {
-            await command.onCall(interaction, db);
+            await command.onCall(interaction, db, bot);
             ProjectsWidget = await updateOngoingProjectsWidget(ProjectsWidget);
         }
     })

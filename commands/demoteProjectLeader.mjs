@@ -15,7 +15,7 @@ export const demoteProjectLeader = {
             type: 6, // https://discord.com/developers/docs/interactions/application-commands#application-command-object-application-command-option-type
         },
     ],
-    onCall: async (interaction, db) => {
+    onCall: async (interaction, db, bot) => {
         try {
             await interaction.deferReply({ ephemeral: true });
 
