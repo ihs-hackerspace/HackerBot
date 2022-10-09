@@ -17,7 +17,7 @@ export const demoteProjectLeader = {
     ],
     onCall: async (interaction, db) => {
         try {
-            await interaction.deferReply();
+            await interaction.deferReply({ ephemeral: true });
 
             const projectName = interaction.options.getString("project-name").toLowerCase().replaceAll(" ", "-");
             const deletionMember = interaction.options.getUser("leader-name");

@@ -28,8 +28,6 @@ function differenceOfDays(date1, date2) {
     return diffInDays;
 }
 
-// Define the project widget so that it can be edited later
-let ProjectsWidget;
 // https://discordjs.guide/popular-topics/embeds.html#embed-preview
 async function updateOngoingProjectsWidget(oldProjectsWidget) {
     const ongoingProjectsChannel = bot.channels.cache.get(ONGOING_PROJECTS_CHANNEL);
@@ -100,6 +98,9 @@ bot.on('ready', async () => {
     console.log(`Logged in as ${bot.user.tag}!`);
     ProjectsWidget = await updateOngoingProjectsWidget(ProjectsWidget);
 });
+
+// Define the project widget so that it can be edited later
+let ProjectsWidget;
 
 // Run the onCall function for whatever command was sent
 bot.on('interactionCreate', async interaction => {

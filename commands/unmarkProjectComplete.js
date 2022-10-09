@@ -13,7 +13,7 @@ export const unmarkProjectComplete = {
     ],
     onCall: async (interaction, db) => {
         try {
-            await interaction.deferReply();
+            await interaction.deferReply({ ephemeral: true });
 
             const projectName = interaction.options.getString("project-name").toLowerCase().replaceAll(" ", "-");
             const snapshot = await db.doc(`Projects/${projectName}`).get();

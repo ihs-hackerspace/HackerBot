@@ -19,7 +19,7 @@ export const approvePurchaseOrder = {
     ],
     onCall: async (interaction, db) => {
         try {
-            await interaction.deferReply();
+            await interaction.deferReply({ ephemeral: true });
 
             const orderID = interaction.options.getString("order-id");
             const orderSnapshot = await db.doc(`Orders/${orderID}`).get();
