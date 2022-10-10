@@ -8,6 +8,7 @@ import { markProjectComplete } from "./markProjectComplete.mjs";
 import { removeProjectMember } from "./removeProjectMember.mjs";
 import { requestPurchase } from "./requestPurchase.js";
 import { unmarkProjectComplete } from "./unmarkProjectComplete.js";
+import { removeProject } from "./removeProject.mjs";
 
 export const commands = [
     addProjectLeader,
@@ -20,4 +21,5 @@ export const commands = [
     removeProjectMember,
     requestPurchase,
     unmarkProjectComplete,
+    removeProject,
 ]

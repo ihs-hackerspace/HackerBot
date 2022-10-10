@@ -56,7 +56,6 @@ export const requestPurchase = {
                 }
 
                 const ticketID = generateUUID();
-
                 const orderTicket = {
                     'project-name': projectName,
                     'ticket-id': ticketID,
@@ -67,6 +66,16 @@ export const requestPurchase = {
                     'total-cost': interaction.options.getNumber("total-cost"),
                     'message-id': interaction.id,
                     'approved': false,
+                }
+
+                if (orderTicket["total-cost"] <= 0) {
+                    await interaction.editReply({ content: `Please enter a realistic cost :rage:` });
+                    return;
+                }
+
+                if (orderTicket["quantity"] <= 0) {
+                    await interaction.editReply({ content: `Please enter a realistic quantity :rage:` });
+                    return;
                 }
 
                 await db.doc(`Orders/${ticketID}`).set(orderTicket);

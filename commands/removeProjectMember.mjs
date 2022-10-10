@@ -24,9 +24,17 @@ export const removeProjectMember = {
             const snapshot = await db.doc(`Projects/${projectName}`).get();
 
             if (snapshot.exists) {
-                const hasPermission = snapshot.data()["project-leaders"].includes(interaction.user.id) || snapshot.data()["project-admin"] == interaction.user.id;
+                const hasPermission = 
+                    snapshot.data()["project-leaders"].includes(interaction.user.id) 
+                    || snapshot.data()["project-admin"] == interaction.user.id
+                    || deletionMember.id == interaction.user.id;
                 if (!hasPermission) {
                     await interaction.editReply({ content: `Nice try but you don't have permission to do that!`, ephemeral: true });
+                    return;
+                }
+
+                if (deletionMember.id == snapshot.data()["project-admin"]) {
+                    await interaction.editReply({ content: `You can't delete yourself as the project admin at this time because it might cause glitches!`, ephemeral: true });
                     return;
                 }
 
